@@ -13,15 +13,26 @@
   <header class="masthead"><a class="brand" href="./" style="text-decoration:none"><span class="mark" aria-hidden="true"></span>chisel</a></header>
   <article class="doc">
     <p class="eyebrow">Privacy</p>
-    <h1 class="display">Your journal stays yours.</h1>
-    <h2>What Chisel stores, and where</h2>
-    <p>Everything you write or record is saved to your own Google Drive, in a folder called <i>Chisel</i>: a Google Doc per month, audio files for voice notes, and a small index file (<code>chisel-index.json</code>) that powers the list view. Chisel has no server and no database of its own.</p>
-    <h2>What Chisel can access</h2>
-    <p>Chisel asks for the <code>drive.file</code> permission, which only lets it see and change files it created. It cannot read anything else in your Drive. It also reads your name, email address and profile picture to show who is signed in.</p>
+    <h1 class="display">Your journal is yours.</h1>
+    <p>Last updated September 2026.</p>
+
+    <h2>What Chisel stores</h2>
+    <p>When you create an account, Chisel stores your email address and, if you sign in with Google, your name and profile picture. It stores the entries you save: titles, text, the people and tags you add, the date and time, voice-note recordings and their transcripts.</p>
+    <p>This data is kept in a database and file store run by <a href="https://supabase.com">Supabase</a>, in Singapore. Access rules in the database mean each account can only ever read its own entries and recordings. Chisel doesn’t use advertising, analytics or tracking cookies, and it doesn’t sell or share your data.</p>
+
+    <h2>Google Drive (optional)</h2>
+    <p>If you connect Google Drive, Chisel copies your entries into a folder called <i>Chisel</i> in your Drive: a Google Doc per month, and audio files for voice notes. It asks for the <code>drive.file</code> permission, which only lets it see and change files it created. It can’t read anything else in your Drive. The Google Drive access token stays in your browser and is never stored on Chisel’s servers.</p>
+    <p>Copies in your Drive belong to you. Disconnecting Drive or deleting your Chisel account doesn’t delete them.</p>
+
     <h2>Voice transcription</h2>
-    <p>When “Transcribe” is on, your browser’s built-in speech recognition turns speech into text. In some browsers (such as Chrome) that audio is processed by the browser vendor’s speech service. Turn it off to keep audio entirely between your device and your Drive.</p>
-    <h2>Signing out</h2>
-    <p>Signing out revokes Chisel’s access token. You can remove Chisel’s access at any time from <a href="https://myaccount.google.com/permissions">your Google Account</a>. Deleting the <i>Chisel</i> folder removes all of your entries.</p>
+    <p>When “Transcribe” is on, your browser’s built-in speech recognition turns speech into text. In some browsers (such as Chrome) that audio is processed by the browser maker’s speech service. Turn it off to keep audio between your device and Chisel.</p>
+
+    <h2>Deleting your data</h2>
+    <p>You can delete any entry at any time. To delete everything, open the account menu and choose <b>Delete account</b>. This permanently removes your account, entries and recordings from Chisel. You can also remove Chisel’s access to Google at <a href="https://myaccount.google.com/permissions">your Google Account</a>.</p>
+
+    <h2>Contact</h2>
+    <!-- TODO: replace with the support address you want to publish -->
+    <p>Questions about your data: <a href="mailto:support@example.com">support@example.com</a>.</p>
   </article>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Chisel</title>
-<meta name="description" content="A quiet journal. Write or speak; every entry is kept in your own Google Drive.">
+<meta name="description" content="A quiet journal. Write or speak, and keep a copy in your own Google Drive if you like.">
 <meta name="theme-color" content="#F5F3EE" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1B1C1A" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F5F3EE'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%232A2A27'/%3E%3C/svg%3E">
@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="styles.css">
 <script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -20,47 +21,80 @@
   <header class="masthead">
     <span class="brand"><span class="mark" aria-hidden="true"></span>chisel</span>
     <div class="account" id="account" hidden>
-      <span class="sync" id="sync"><i aria-hidden="true"></i><span id="syncText">Synced</span></span>
+      <span class="sync" id="sync"><i aria-hidden="true"></i><span id="syncText">Saved</span></span>
       <button class="avatar" id="avatarBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Account">
         <img id="avatar" alt="" hidden><span id="initial"></span>
       </button>
       <div class="menu" id="menu" hidden>
         <p class="menu-who" id="menuWho"></p>
-        <a id="folderLink" href="#" target="_blank" rel="noopener">Open Chisel folder in Drive</a>
+        <div class="menu-sec">
+          <p class="menu-label">Google Drive</p>
+          <p class="menu-note" id="driveNote">Not connected</p>
+          <button id="driveConnect" type="button">Connect Google Drive</button>
+          <button id="driveSyncNow" type="button" hidden>Sync now</button>
+          <a id="driveFolder" href="#" target="_blank" rel="noopener" hidden>Open Chisel folder</a>
+          <button id="driveDisconnect" type="button" hidden>Disconnect</button>
+        </div>
         <button id="signout" type="button">Sign out</button>
+        <button id="deleteAccount" class="danger" type="button">Delete account…</button>
       </div>
     </div>
   </header>
 
-  <!-- ============ Welcome / sign in ============ -->
+  <!-- ============ Welcome / auth ============ -->
   <section class="welcome" id="welcome" hidden>
-    <p class="eyebrow">A quiet journal</p>
-    <h1 class="display">Moving through life,<br>one conversation at a time.</h1>
-    <p class="lede">Write it down or simply talk. Chisel keeps every entry in your own Google&nbsp;Drive — voice notes as audio files, words in a Google&nbsp;Doc with a tab for each day.</p>
+    <div class="welcome-grid">
+      <div>
+        <p class="eyebrow">A quiet journal</p>
+        <h1 class="display">Moving through life,<br>one conversation at a time.</h1>
+        <p class="lede">Write it down or simply talk. Chisel keeps your entries private to you, and can keep a copy in your own Google&nbsp;Drive: voice notes as audio files, words in a Google&nbsp;Doc with a tab for each day.</p>
+      </div>
 
-    <div id="signinBlock">
-      <button class="gbtn" id="signinBtn" type="button">
-        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.7-6c-2.1 1.4-4.8 2.3-7.9 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
-        Continue with Google
-      </button>
-      <p class="err" id="signinErr" hidden></p>
-    </div>
-
-    <div class="setup" id="setup" hidden>
-      <p class="setup-t">One-time setup</p>
-      <p>Paste the OAuth client ID from your Google Cloud project. It’s stored only in this browser — or set it in <code>config.js</code> so nobody has to.</p>
-      <div class="setup-row">
-        <input id="cid" placeholder="123456789-abc.apps.googleusercontent.com" autocomplete="off" spellcheck="false" aria-label="OAuth client ID">
-        <button class="btn" id="saveCid" type="button">Save</button>
+      <div class="auth" id="auth">
+        <div id="authMain">
+          <p class="auth-t" id="authTitle">Sign in</p>
+          <button class="gbtn" id="googleBtn" type="button">
+            <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.7-6c-2.1 1.4-4.8 2.3-7.9 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+            Continue with Google
+          </button>
+          <p class="or"><span>or with email</span></p>
+          <form id="authForm" novalidate>
+            <label class="field"><span>Email</span><input id="authEmail" type="email" autocomplete="email" required></label>
+            <label class="field" id="pwField"><span>Password</span><input id="authPassword" type="password" autocomplete="current-password" minlength="8" required></label>
+            <p class="auth-err" id="authErr" role="alert" hidden></p>
+            <button class="btn primary wide" id="authSubmit" type="submit">Sign in</button>
+          </form>
+          <p class="auth-links">
+            <button class="link" id="forgotBtn" type="button">Forgot password?</button>
+            <span id="switchWrap"><span id="switchText">New to Chisel?</span> <button class="link strong" id="switchBtn" type="button">Create an account</button></span>
+          </p>
+        </div>
+        <div id="authMsg" hidden>
+          <p class="auth-t" id="authMsgTitle">Check your inbox</p>
+          <p class="auth-msg" id="authMsgText"></p>
+          <button class="link strong" id="authBack" type="button">Back to sign in</button>
+        </div>
+        <form id="newPassForm" hidden novalidate>
+          <p class="auth-t">Choose a new password</p>
+          <label class="field"><span>New password</span><input id="newPassword" type="password" autocomplete="new-password" minlength="8" required></label>
+          <p class="auth-err" id="newPassErr" role="alert" hidden></p>
+          <button class="btn primary wide" type="submit">Save password</button>
+        </form>
       </div>
     </div>
 
     <ol class="how">
       <li><span class="how-n">01</span><b>Speak or type</b><span>Record a voice note, write a few lines, or both in the same entry.</span></li>
-      <li><span class="how-n">02</span><b>Kept in your Drive</b><span>Audio lands in a <i>Chisel</i> folder you own. Nothing lives on our side.</span></li>
-      <li><span class="how-n">03</span><b>A tab for every day</b><span>One Google Doc per month; each day is a tab, each entry a tab inside it.</span></li>
+      <li><span class="how-n">02</span><b>Private by default</b><span>Only you can read your entries. No feeds, no sharing, no ads.</span></li>
+      <li><span class="how-n">03</span><b>Your Drive, if you like</b><span>Connect Google Drive for a copy you own: a Doc per month, a tab for every day.</span></li>
     </ol>
-    <p class="fine">Chisel can only see the files it creates. <a href="privacy.html">Privacy</a> · <a href="?demo">Try the preview</a></p>
+    <p class="fine"><a href="privacy.html">Privacy</a> · <a href="?demo">Try the preview</a></p>
+  </section>
+
+  <section class="welcome" id="misconfigured" hidden>
+    <p class="eyebrow">Setup needed</p>
+    <h1 class="display">Almost there.</h1>
+    <p class="lede">Chisel can’t find its Supabase settings. Set <code>supabaseUrl</code> and <code>supabaseKey</code> in <code>config.js</code>, or the <code>SUPABASE_URL</code> and <code>SUPABASE_PUBLISHABLE_KEY</code> environment variables on Netlify.</p>
   </section>
 
   <!-- ============ App ============ -->
@@ -74,6 +108,14 @@
         <div><dt>Spoken</dt><dd id="sVoice">0 min</dd></div>
       </dl>
     </section>
+
+    <div class="banner" id="driveBanner" hidden>
+      <span id="driveBannerText">Keep a copy of your journal in your own Google Drive.</span>
+      <span class="banner-acts">
+        <button class="link strong" id="driveBannerBtn" type="button">Connect</button>
+        <button class="x" id="driveBannerClose" type="button" aria-label="Dismiss"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+      </span>
+    </div>
 
     <section class="composer" aria-label="New entry">
       <input class="c-title" id="fTitle" placeholder="Title" autocomplete="off" aria-label="Title">
@@ -116,8 +158,21 @@
     <div id="list"></div>
   </main>
 
-  <footer class="foot" id="foot" hidden><span id="footText"></span></footer>
+  <footer class="foot" id="foot" hidden><a href="privacy.html">Privacy</a></footer>
 </div>
+
+<dialog class="dialog" id="deleteDialog">
+  <form method="dialog" id="deleteForm">
+    <p class="auth-t">Delete your account?</p>
+    <p class="auth-msg">This permanently deletes every entry and voice note stored in Chisel. Anything already copied to your Google Drive stays there. Type <b>delete</b> to confirm.</p>
+    <label class="field"><span>Confirm</span><input id="deleteConfirm" autocomplete="off" spellcheck="false"></label>
+    <div class="dialog-acts">
+      <button class="btn" value="cancel" type="submit" formnovalidate>Cancel</button>
+      <button class="btn danger-btn" id="deleteGo" value="delete" type="submit" disabled>Delete everything</button>
+    </div>
+  </form>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="app.js"></script>
 </body>

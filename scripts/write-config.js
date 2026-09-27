@@ -1,9 +1,18 @@
-// Netlify build step: writes public/config.js from the GOOGLE_CLIENT_ID environment variable.
+// Netlify build step: overrides values in public/config.js from environment variables, when set.
+//   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, GOOGLE_CLIENT_ID
 const fs = require('fs');
-const id = (process.env.GOOGLE_CLIENT_ID || '').trim();
-if (!id) {
-  console.warn('GOOGLE_CLIENT_ID is not set; the app will ask for a client ID on first visit.');
+const env = {
+  supabaseUrl: process.env.SUPABASE_URL,
+  supabaseKey: process.env.SUPABASE_PUBLISHABLE_KEY,
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+};
+const overrides = Object.fromEntries(Object.entries(env).map(([k, v]) => [k, (v || '').trim()]).filter(([, v]) => v));
+if (!Object.keys(overrides).length) {
+  console.log('No config overrides set; using public/config.js as committed.');
 } else {
-  fs.writeFileSync('public/config.js', 'window.CHISEL_CONFIG = { clientId: ' + JSON.stringify(id) + ' };\n');
-  console.log('Wrote public/config.js');
+  fs.appendFileSync('public/config.js', '\nObject.assign(window.CHISEL_CONFIG, ' + JSON.stringify(overrides) + ');\n');
+  console.log('Config overrides applied: ' + Object.keys(overrides).join(', '));
+}
+if (!overrides.googleClientId && !/googleClientId:\s*'[^']+'/.test(fs.readFileSync('public/config.js', 'utf8'))) {
+  console.warn('GOOGLE_CLIENT_ID is not set: the "Connect Google Drive" option will be hidden.');
 }

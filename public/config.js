@@ -1,6 +1,8 @@
-// Your Google OAuth 2.0 "Web application" client ID.
-// The Netlify build (scripts/write-config.js) overwrites this file from the GOOGLE_CLIENT_ID environment variable,
-// so you normally don't need to edit it. Left empty, the app asks for the ID once and stores it in the browser.
+// Public configuration. None of these values are secrets: the Supabase publishable key only allows
+// what the database's row-level security policies allow, and a Google client ID is meant to be public.
+// On Netlify, scripts/write-config.js appends overrides from environment variables.
 window.CHISEL_CONFIG = {
-  clientId: '',
+  supabaseUrl: 'https://xhqokhbqegxyidzqecyj.supabase.co',
+  supabaseKey: 'sb_publishable__euqgdanUAfKctiq-qUR1g_Kanhuy7u',
+  googleClientId: '',   // OAuth "Web application" client ID, used for the optional Google Drive copy
 };
