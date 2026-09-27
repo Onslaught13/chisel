@@ -34,29 +34,19 @@ Open `/?demo` for a preview that works without signing in and saves nothing.
    - Under **Audience**, either add yourself as a *test user* (fine for personal use), or click **Publish app** so anyone with a Google account can sign in.
 4. Under **APIs & Services → Credentials → Create credentials → OAuth client ID**:
    - Application type: **Web application**
-   - Authorized JavaScript origins: `https://onslaught13.github.io` (plus `http://localhost:8000` for local testing)
+   - Authorized JavaScript origins: your Netlify site, e.g. `https://chisel-journal.netlify.app` (plus `http://localhost:8000` for local testing)
    - No redirect URIs are needed, because sign-in uses the Google Identity Services popup.
 5. Copy the **Client ID** (`…apps.googleusercontent.com`). It isn't a secret.
 
-## 2. Publish on GitHub Pages
-
-1. In this repo, go to **Settings → Pages → Build and deployment → Source** and choose **GitHub Actions**.
-2. Go to **Settings → Secrets and variables → Actions → Variables** and add a repository variable named `GOOGLE_CLIENT_ID` containing your client ID.
-3. Push to `main` (or run the **Deploy to GitHub Pages** workflow by hand). The site is published at `https://onslaught13.github.io/chisel/`.
-
-The workflow copies `public/` and writes `config.js` from the variable. If the variable is missing, the app asks for a client ID on first visit and keeps it in that browser.
-
-## 2b. Or publish on Netlify
+## 2. Publish on Netlify
 
 `netlify.toml` is already set up. Its publish directory is `public/`, and its build step writes `config.js` from an environment variable.
 
 1. In Netlify, choose **Add new site → Import an existing project → GitHub**, then pick this repo and branch. Leave the build settings as they are, because they come from `netlify.toml`.
 2. Under **Site configuration → Environment variables**, add `GOOGLE_CLIENT_ID` and set it to your client ID. Then trigger a redeploy.
-3. Add the site's origin (for example `https://chisel-journal.netlify.app`, or your custom domain) to the OAuth client's **Authorized JavaScript origins**. Also update the consent screen's privacy policy URL.
+3. Make sure the site's origin (your `*.netlify.app` address or custom domain) is in the OAuth client's **Authorized JavaScript origins**. Also update the consent screen's privacy policy URL.
 
 Deploy previews run on different URLs, so Google sign-in won't work on them unless you add each one as an origin. `/?demo` still works there.
-
-If you only use Netlify, delete `.github/workflows/pages.yml` so GitHub doesn't try to deploy as well.
 
 ## Local development
 
