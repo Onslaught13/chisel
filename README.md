@@ -46,6 +46,18 @@ Open `/?demo` for a preview that works without signing in and saves nothing.
 
 The workflow copies `public/` and writes `config.js` from the variable. If the variable is missing, the app asks for a client ID on first visit and keeps it in that browser.
 
+## 2b. Or publish on Netlify
+
+`netlify.toml` is already set up. Its publish directory is `public/`, and its build step writes `config.js` from an environment variable.
+
+1. In Netlify, choose **Add new site → Import an existing project → GitHub**, then pick this repo and branch. Leave the build settings as they are, because they come from `netlify.toml`.
+2. Under **Site configuration → Environment variables**, add `GOOGLE_CLIENT_ID` and set it to your client ID. Then trigger a redeploy.
+3. Add the site's origin (for example `https://chisel-journal.netlify.app`, or your custom domain) to the OAuth client's **Authorized JavaScript origins**. Also update the consent screen's privacy policy URL.
+
+Deploy previews run on different URLs, so Google sign-in won't work on them unless you add each one as an origin. `/?demo` still works there.
+
+If you only use Netlify, delete `.github/workflows/pages.yml` so GitHub doesn't try to deploy as well.
+
 ## Local development
 
 ```sh
