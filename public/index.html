@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Chisel</title>
+<meta name="description" content="A quiet journal. Write or speak; every entry is kept in your own Google Drive.">
+<meta name="theme-color" content="#F5F3EE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1B1C1A" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F5F3EE'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%232A2A27'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+<div class="shell">
+  <header class="masthead">
+    <span class="brand"><span class="mark" aria-hidden="true"></span>chisel</span>
+    <div class="account" id="account" hidden>
+      <span class="sync" id="sync"><i aria-hidden="true"></i><span id="syncText">Synced</span></span>
+      <button class="avatar" id="avatarBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Account">
+        <img id="avatar" alt="" hidden><span id="initial"></span>
+      </button>
+      <div class="menu" id="menu" hidden>
+        <p class="menu-who" id="menuWho"></p>
+        <a id="folderLink" href="#" target="_blank" rel="noopener">Open Chisel folder in Drive</a>
+        <button id="signout" type="button">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ Welcome / sign in ============ -->
+  <section class="welcome" id="welcome" hidden>
+    <p class="eyebrow">A quiet journal</p>
+    <h1 class="display">Moving through life,<br>one conversation at a time.</h1>
+    <p class="lede">Write it down or simply talk. Chisel keeps every entry in your own Google&nbsp;Drive — voice notes as audio files, words in a Google&nbsp;Doc with a tab for each day.</p>
+
+    <div id="signinBlock">
+      <button class="gbtn" id="signinBtn" type="button">
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.7-6c-2.1 1.4-4.8 2.3-7.9 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+      <p class="err" id="signinErr" hidden></p>
+    </div>
+
+    <div class="setup" id="setup" hidden>
+      <p class="setup-t">One-time setup</p>
+      <p>Paste the OAuth client ID from your Google Cloud project. It’s stored only in this browser — or set it in <code>config.js</code> so nobody has to.</p>
+      <div class="setup-row">
+        <input id="cid" placeholder="123456789-abc.apps.googleusercontent.com" autocomplete="off" spellcheck="false" aria-label="OAuth client ID">
+        <button class="btn" id="saveCid" type="button">Save</button>
+      </div>
+    </div>
+
+    <ol class="how">
+      <li><span class="how-n">01</span><b>Speak or type</b><span>Record a voice note, write a few lines, or both in the same entry.</span></li>
+      <li><span class="how-n">02</span><b>Kept in your Drive</b><span>Audio lands in a <i>Chisel</i> folder you own. Nothing lives on our side.</span></li>
+      <li><span class="how-n">03</span><b>A tab for every day</b><span>One Google Doc per month; each day is a tab, each entry a tab inside it.</span></li>
+    </ol>
+    <p class="fine">Chisel can only see the files it creates. <a href="privacy.html">Privacy</a> · <a href="?demo">Try the preview</a></p>
+  </section>
+
+  <!-- ============ App ============ -->
+  <main id="app" hidden>
+    <section class="today">
+      <p class="eyebrow" id="todayLabel"></p>
+      <h1 class="display" id="greeting">Hello.</h1>
+      <dl class="stats">
+        <div><dt>Entries</dt><dd id="sCount">0</dd></div>
+        <div><dt>This week</dt><dd id="sWeek">0</dd></div>
+        <div><dt>Spoken</dt><dd id="sVoice">0 min</dd></div>
+      </dl>
+    </section>
+
+    <section class="composer" aria-label="New entry">
+      <input class="c-title" id="fTitle" placeholder="Title" autocomplete="off" aria-label="Title">
+      <textarea class="c-text" id="fText" placeholder="What’s on your mind? Write it here, or press record and talk." aria-label="Entry text"></textarea>
+
+      <div class="recorder" id="recorder" hidden>
+        <div class="rec-top"><span class="rec-live"><i></i>Recording</span><span class="rec-time" id="recTime">0:00</span></div>
+        <div class="meter" id="meter" aria-hidden="true"></div>
+        <p class="rec-transcript" id="recTranscript"></p>
+      </div>
+
+      <ul class="clips" id="clips"></ul>
+
+      <div class="details" id="details" hidden>
+        <label><span>With</span><input id="fWith" placeholder="Someone" autocomplete="off"></label>
+        <label><span>Date</span><input id="fDate" type="date"></label>
+        <label><span>Tags</span><input id="fTags" placeholder="work, family" autocomplete="off"></label>
+      </div>
+
+      <div class="c-bar">
+        <button class="recbtn" id="recBtn" type="button" aria-pressed="false">
+          <span class="recbtn-dot" aria-hidden="true"></span><span id="recLabel">Record</span>
+        </button>
+        <label class="toggle" id="transcribeWrap" title="Transcribe voice notes as you speak">
+          <input type="checkbox" id="transcribe" checked><span class="toggle-ui" aria-hidden="true"></span><span>Transcribe</span>
+        </label>
+        <button class="link" id="detailsBtn" type="button" aria-expanded="false">Details</button>
+        <span class="spacer"></span>
+        <button class="btn primary" id="saveBtn" type="button" disabled>Save entry</button>
+      </div>
+    </section>
+
+    <div class="listhead">
+      <h2>Journal</h2>
+      <label class="search">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>
+        <input id="search" type="search" placeholder="Search" aria-label="Search entries">
+      </label>
+    </div>
+    <div id="list"></div>
+  </main>
+
+  <footer class="foot" id="foot" hidden><span id="footText"></span></footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>

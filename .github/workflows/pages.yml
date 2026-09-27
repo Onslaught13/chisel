@@ -1,0 +1,43 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main, claude/optimistic-brahmagupta-29zslf]
+    paths: ['public/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build site
+        env:
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+        run: |
+          cp -r public _site
+          if [ -n "$GOOGLE_CLIENT_ID" ]; then
+            printf 'window.CHISEL_CONFIG = { clientId: %s };\n' "$(jq -n --arg v "$GOOGLE_CLIENT_ID" '$v')" > _site/config.js
+          else
+            echo "::warning::GOOGLE_CLIENT_ID repository variable is not set; the app will ask for a client ID on first visit."
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
